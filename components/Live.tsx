@@ -1,10 +1,16 @@
 import { useMyPresence, useOthers } from "@/liveblocks.config";
 import LiveCursors from "./cursor/LiveCursors"
-import React, { useCallback } from 'react'
+import React, { use, useCallback, useState,useEffect } from 'react'
+import CursorChat from "./cursor/CursorChat";
+import { CursorMode } from "@/types/type";
 
 const Live = () => {
     const others = useOthers();
     const [{cursor},updateMyPresence] = useMyPresence() as any;
+
+    const [cursorState, setCursorState] = useState({
+        mode:CursorMode.Hidden
+    });
 
     const handlePonterMove = useCallback((event:React.PointerEvent)=>{
         event.preventDefault();
@@ -16,10 +22,7 @@ const Live = () => {
     },[])
 
     const handlePointerLeave = useCallback((event:React.PointerEvent)=>{
-        event.preventDefault();
-        const x = event.clientX - event.currentTarget.getBoundingClientRect().x;
-        const y = event.clientY - event.currentTarget.getBoundingClientRect().y;
-
+        setCursorState({mode:CursorMode.Hidden});
         updateMyPresence({cursor:null, message:null});
 
     },[])
@@ -32,6 +35,39 @@ const Live = () => {
 
     },[])
 
+    useEffect(()=>{
+        const onKeyUp = (event:KeyboardEvent) => {
+            if(event.key === '/'){
+                setCursorState({
+                    mode:CursorMode.Chat,
+                    previousMessage: null,
+                    message:''
+                
+                })
+            }
+            else if(event.key === 'Escape'){
+                updateMyPresence({message:null});
+                setCursorState({mode:CursorMode.Hidden});
+            }
+        }
+
+        const onKeyDown = (event:KeyboardEvent) => {
+            if(event.key === '/'){
+                event.preventDefault();
+                
+            }
+        }
+
+        window.addEventListener('keyup',onKeyUp);
+        window.addEventListener('keydown',onKeyDown);
+
+        return () => {
+            window.removeEventListener('keyup',onKeyUp);
+            window.removeEventListener('keydown',onKeyDown);
+        }
+
+    },[updateMyPresence])
+
   return (
     <div
         onPointerMove={handlePonterMove}
@@ -42,7 +78,17 @@ const Live = () => {
 
     >
         <h1 className=" text-5xl">hi</h1>
+        {cursor && (
+            <CursorChat
+                cursor={cursor} 
+                cursorState={cursorState}
+                setCursorState={setCursorState}
+                updateMyPresence={updateMyPresence}
+             /> 
+
+        )}
         <LiveCursors others = {others}/>
+
     </div>
   )
 }
