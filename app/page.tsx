@@ -1,12 +1,18 @@
 "use client";
 import Live from "@/components/Live";
 import { Room } from "./Room";
+import Navbar from "@/components/Navbar";
 
 export default function Page() {
   return (
-    <div className="h-[100vh] w-full flex justify-center items-center text-center">
+    <div>
+      <main className="h-screen overflow-hidden">
+        <Navbar />
 
-      <Live />
+        <section className="flex h-full flex-row">
+          <Live />
+        </section>
+      </main>
     </div>
   );
 }
